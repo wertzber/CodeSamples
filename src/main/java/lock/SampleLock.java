@@ -37,7 +37,7 @@ public class SampleLock {
             System.out.println("Stamp:" + stamp);
             // release the lock stamp
             if (stamp != 0L) {
-                lock.unlock(stamp);
+                if(lock.isReadLocked()) lock.unlock(stamp);
             }
         }
     }
