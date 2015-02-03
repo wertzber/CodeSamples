@@ -10,8 +10,8 @@ import java.util.Optional;
 public class SampleOptional {
 
     public static void main(String args[]) {
-        SampleOptional sampleLock = new SampleOptional();
-        sampleLock.testOptional();
+        SampleOptional sample = new SampleOptional();
+        sample.testOptional();
     }
 
     public void testOptional(){

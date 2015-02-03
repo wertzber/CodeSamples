@@ -12,10 +12,11 @@ public class Sample1 {
 
     public static void main(String args[]){
         Sample1 sample1 = new Sample1();
+        sample1.streamSample();
         //sample1.streamSample4();
         //sample1.range();
         //sample1.streamToObj();
-        sample1.sort();
+        //sample1.sort();
     }
 
     /**
@@ -31,7 +32,7 @@ public class Sample1 {
 //        }
 
         // Using lambda expression and functional operations
-        players.forEach((player) -> System.out.print(player + "; "));
+        players.forEach( player -> System.out.print(player + "; "));
 
         // Using double colon operator in Java 8
         players.forEach(System.out::println);
@@ -74,7 +75,10 @@ public class Sample1 {
 
         myList
                 .stream()
-                .filter(s -> s.startsWith("c"))
+                .filter(s ->{
+                    System.out.print("eeee");
+                    return s.startsWith("c");
+                })
                 .map(String::toUpperCase)
                 .sorted()
                 .forEach(System.out::println);

@@ -14,7 +14,7 @@ public class SampleLock {
 
     public void testLock(){
         StampedLock lock = new StampedLock();
-// try the fast (non-blocking) lock first
+        // try the fast (non-blocking) lock first
         long stamp = 0L;
         try {
             stamp = lock.tryOptimisticRead();

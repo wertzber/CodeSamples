@@ -12,7 +12,7 @@ public class ThreadSample {
 
     public static void main(String args[]) {
         ThreadSample threadSample = new ThreadSample();
-        threadSample.threadTest();
+        threadSample.threadTest2();
 
 
     }
