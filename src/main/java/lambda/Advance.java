@@ -24,7 +24,7 @@ public class Advance {
 
     public static void main(String args[]){
         Advance advance = new Advance();
-        advance.toMap();
+        advance.join();
     }
 
     /**
