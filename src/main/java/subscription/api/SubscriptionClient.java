@@ -6,7 +6,7 @@ package subscription.api;
  * R - Response
  * N- Notify
  */
-public interface ClientSubscriber<R,N> {
+public interface SubscriptionClient<R,N> {
 
     public void onSubscriptionResponse(R Response); //Action after subscriber response ( success/fail)
     public void onNotify(N Notify);                 //Action for each notify

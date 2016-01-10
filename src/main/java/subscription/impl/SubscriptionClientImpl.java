@@ -1,13 +1,13 @@
 package subscription.impl;
 
-import subscription.api.ClientSubscriber;
+import subscription.api.SubscriptionClient;
 
 /**
  * Created by eladw on 1/4/2016.
  * Client subscription.
  * TODO: Should also support retry options.
  */
-public class ClientSubscriberImpl<R,N> implements ClientSubscriber<R,N> {
+public class SubscriptionClientImpl<R,N> implements SubscriptionClient<R,N> {
 
 
     @Override

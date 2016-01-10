@@ -1,6 +1,6 @@
 package subscription.api;
 
-import subscription.impl.SubscriptionData;
+import subscription.data.subscribe.SubscriptionData;
 
 import java.util.List;
 import java.util.Map;
@@ -13,14 +13,14 @@ import java.util.Map;
  * T - predicate object to use
  * O - orig subscribe
  */
-public interface SubscriberActions<T,O> {
+public interface SubscriptionActions<P,O> {
 
     boolean removeAccount(String account);   //remove
     boolean removeSubscriber(String account, String subscribeId);
     boolean removeSubscriberUser(String account, String userId);
     String addSubscriber(String account, String userId, O incomingSubscribe);
-    Map<String, SubscriptionData<T, O>> getAccountSubscriptions(String account);
-    T getSubscription(String account, String subscribeId);
+    Map<String, SubscriptionData<P, O>> getAccountSubscriptions(String account);
+    SubscriptionData<P,O> getSubscription(String account, String subscribeId);
     List<String> getUserSubscriptions(String account, String userId);
 
 

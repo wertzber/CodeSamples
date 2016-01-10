@@ -1,1 +1,1 @@
-serverSubscriber -> subscriberActions
+serverSubscriber -> subscriptionActions

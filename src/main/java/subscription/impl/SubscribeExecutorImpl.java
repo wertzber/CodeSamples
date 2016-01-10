@@ -1,18 +1,17 @@
 package subscription.impl;
 
-import subscription.api.SubscribeExecutor;
-import subscription.api.SubscriberActions;
-import subscription.data.aam.AamPredicate;
+import subscription.api.SubscriptionExecutor;
+import subscription.api.SubscriptionActions;
 
 /**
  * Created by eladw on 1/5/2016.
  */
-public class SubscribeExecutorImpl<Input> implements SubscribeExecutor<Input> {
+public class SubscribeExecutorImpl<Input> implements SubscriptionExecutor<Input> {
 
-    SubscriberActions subscriberActions;
+    SubscriptionActions subscriptionActions;
 
-    public SubscribeExecutorImpl(SubscriberActions subscriberActions){
-        this.subscriberActions = subscriberActions;
+    public SubscribeExecutorImpl(SubscriptionActions subscriptionActions){
+        this.subscriptionActions = subscriptionActions;
     }
 
 
@@ -24,7 +23,7 @@ public class SubscribeExecutorImpl<Input> implements SubscribeExecutor<Input> {
     @Override
     public boolean executeSubscriptionPredicateOnAccount(String account,Input input) {
         return true;
-//        return subscriberActions.getAccountSubscriptions(account)
+//        return subscriptionActions.getAccountSubscriptions(account)
 //                .entrySet()
 //                .stream()
 //                .filter(new AamPredicate())

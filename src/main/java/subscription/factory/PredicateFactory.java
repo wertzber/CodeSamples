@@ -11,7 +11,7 @@ import java.util.function.Predicate;
  */
 public class PredicateFactory {
     public static Predicate getPredicate(Class predicateClass, Object origRequest) {
-        if (AamPredicate.class.isInstance(predicateClass)) {
+        if (AamPredicate.class.getName().equals(predicateClass.getName())) {
             // todo need to find a safer way than casting
             return new AamPredicate((SubscribeExConversations)origRequest);
         } else {

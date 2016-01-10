@@ -1,4 +1,4 @@
-package subscription.impl;
+package subscription.data.subscribe;
 
 import java.util.function.Predicate;
 
@@ -13,21 +13,21 @@ import java.util.function.Predicate;
  * Time: 2:30 PM
  */
 
-public class SubscriptionData<T,O> {
+public class SubscriptionData<P,O> {
 
-    private Predicate<T> subscribePredicate;
+    private Predicate<P> subscribePredicate;
     private O origSubscribe;
     //subscriptionId of this query
     private String subscriptionId;
 
-    public SubscriptionData(Predicate<T> subscribePredicate, O origSubscribe,
+    public SubscriptionData(Predicate<P> subscribePredicate, O origSubscribe,
                             String subscriptionId) {
         this.subscribePredicate = subscribePredicate;
         this.origSubscribe = origSubscribe;
         this.subscriptionId = subscriptionId;
     }
 
-    public Predicate<T> getSubscribePredicate() {
+    public Predicate<P> getSubscribePredicate() {
         return subscribePredicate;
     }
     public O getOrigSubscribe() {
