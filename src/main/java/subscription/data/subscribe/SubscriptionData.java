@@ -33,6 +33,7 @@ public class SubscriptionData<P,O> {
     public O getOrigSubscribe() {
         return origSubscribe;
     }
+    public String getSubscriptionId() {return subscriptionId;};
 
     @Override
     public String toString() {

@@ -22,9 +22,9 @@ public class SubscriberActionsImpl<T, O, P> implements SubscriptionActions<P, O>
     private static final Logger logger = LoggerFactory.getLogger(SubscriberActionsImpl.class);
 
     //account subs use the account as main key, and subsId as secondary key.
-    private final Map<String, Map<String, SubscriptionData<P, O>>> accountSubscriptionMap = new ConcurrentHashMap<>(50);
+    private Map<String, Map<String, SubscriptionData<P, O>>> accountSubscriptionMap = new ConcurrentHashMap<>(50);
     //Map user to all its subscriptions
-    private final Map<String, List<String>> userSubscriptionMap = new ConcurrentHashMap<>(50);
+    private Map<String, List<String>> userSubscriptionMap = new ConcurrentHashMap<>(50);
 
     private Class<P> predicateClass;
 
@@ -43,14 +43,21 @@ public class SubscriberActionsImpl<T, O, P> implements SubscriptionActions<P, O>
     @Override
     public boolean removeSubscriber(String account, String subscribeId) {
         Map<String, SubscriptionData<P, O>> specificAccountSubscriptions = accountSubscriptionMap.get(account);
-        specificAccountSubscriptions.remove(subscribeId);
+        accountSubscriptionMap.remove(subscribeId);
+
         return true;
     }
 
     @Override
     public boolean removeSubscriberUser(String account, String userId) {
-        List<String> specificAccountSubscriptions = userSubscriptionMap.get(userId);
-        specificAccountSubscriptions.removeIf(key -> key.equals(userId));
+        List<String> userIds = userSubscriptionMap.get(userId);
+
+        Map<String, SubscriptionData<P, O>> accountMap = accountSubscriptionMap.get(account);
+        for(String id : userIds){
+            accountMap.remove(id);
+            logger.debug("removed Subs id: {} ", id);
+        }
+        userSubscriptionMap.remove(userId);
         return true;
     }
 
