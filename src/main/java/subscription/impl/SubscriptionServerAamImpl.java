@@ -6,6 +6,7 @@ import com.liveperson.api.websocket.WsRequestMsg;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import subscription.api.*;
+import subscription.data.FilterType;
 import subscription.data.aam.AamPredicate;
 import subscription.data.aam.ExtendedConversation;
 
@@ -20,7 +21,6 @@ public class SubscriptionServerAamImpl<P> implements
         SubscriptionServer<WsRequestMsg> {
 
     private static final Logger logger = LoggerFactory.getLogger(SubscriptionServerAamImpl.class);
-
 
     SubscriptionActions<AamPredicate, SubscribeExConversations> aamSubscriptionActions = new SubscriberActionsImpl
             <ExtendedConversation, SubscribeExConversations, AamPredicate> (AamPredicate.class);
@@ -40,7 +40,7 @@ public class SubscriptionServerAamImpl<P> implements
     public void onSubscribe(WsRequestMsg inSubscribeRequest,String accountId, String userId,
                             Map<String, String> params) {
         SubscribeExConversations inSubscribeBody = (SubscribeExConversations) inSubscribeRequest.body;
-        boolean filterRes = aamFilterManager.testFilters(SubscriptionFilterManager.FilterType.IN, inSubscribeBody);
+        boolean filterRes = aamFilterManager.testFilters(FilterType.IN, inSubscribeBody);
         if(filterRes){
             String subsId = aamSubscriptionActions.addSubscriber(
                     accountId, userId, inSubscribeBody);
@@ -69,7 +69,33 @@ public class SubscriptionServerAamImpl<P> implements
 
     }
 
+    @Override
+    public void onEvent(Object event) {
+        //filter in
+        boolean isValid = getAamFilterManager().testFilters(FilterType.IN, event);
+        if(isValid){
+            //convertFormat
+
+            //execute predicate
+
+            //convert out
+
+            //filter out
+        } else {
+            logger.warn("Not valid input event {}", event );
+        }
+
+    }
+
     public SubscriptionActions<AamPredicate, SubscribeExConversations> getAamSubscriptionActions() {
         return aamSubscriptionActions;
+    }
+
+    public SubscriptionFilterManager<SubscriptionFilter> getAamFilterManager() {
+        return aamFilterManager;
+    }
+
+    public SubscriptionSender getSender() {
+        return sender;
     }
 }

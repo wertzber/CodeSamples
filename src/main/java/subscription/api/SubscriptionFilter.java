@@ -10,6 +10,6 @@ import java.util.function.Predicate;
  *
  * Is valid will be used for the actual validation.
  */
-public interface SubscriptionFilter<T> {
-    boolean filter(T eventToTest);
+public interface SubscriptionFilter {
+    boolean filter(Object eventToTest);
 }

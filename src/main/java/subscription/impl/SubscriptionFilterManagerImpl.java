@@ -2,6 +2,7 @@ package subscription.impl;
 
 import subscription.api.SubscriptionFilterManager;
 import subscription.api.SubscriptionFilter;
+import subscription.data.FilterType;
 import subscription.data.filters.SubscriptionInFilter;
 import subscription.data.filters.SubscriptionOutFilter;
 

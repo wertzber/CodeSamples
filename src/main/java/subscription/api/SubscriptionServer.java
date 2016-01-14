@@ -18,5 +18,6 @@ public interface SubscriptionServer<O> {
     public void onSubscribe(O inSubscribeRequest, String accountId, String userId, Map<String, String> params );
     public void onUnSubscribe(O inUnSubscribeRequest,String account, String userId, Map<String, String> params);
     public void onUpdateSubscribe(O updateSubscribeRequest, String account, String userId, Map<String, String> params);
+    public void onEvent(Object event);
 
 }

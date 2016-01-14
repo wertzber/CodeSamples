@@ -10,12 +10,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import subscription.api.SubscriptionFilter;
+import subscription.api.SubscriptionFilterManager;
+import subscription.data.FilterType;
 import subscription.data.aam.AamPredicate;
+import subscription.data.filters.AamEventInFilter;
 import subscription.data.subscribe.SubscriptionData;
 import subscription.impl.SubscriptionFilterManagerImpl;
 import subscription.impl.SubscriptionServerAamImpl;
 
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,10 +57,14 @@ public class AamServerSubscriptionTest {
     }
 
     @Test
-    public void aamSubsriptionTest(){
+    public void aamSubsUnsubBaseTest(){
         QueueTestSender<String> sender = new QueueTestSender<>();
         SubscriptionServerAamImpl aamServerSubscriber = new SubscriptionServerAamImpl(
                 new SubscriptionFilterManagerImpl(), sender);
+        List<SubscriptionFilter> filters = new ArrayList<>();
+        filters.add(new AamEventInFilter());
+        aamServerSubscriber.getAamFilterManager().addFilters(FilterType.IN, filters);
+
         Runnable task1 = () -> {
             sender.run();
 

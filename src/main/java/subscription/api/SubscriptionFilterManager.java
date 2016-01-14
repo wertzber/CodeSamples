@@ -1,5 +1,7 @@
 package subscription.api;
 
+import subscription.data.FilterType;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -11,7 +13,6 @@ import java.util.function.Consumer;
  */
 public interface SubscriptionFilterManager<F> {
 
-    public enum FilterType {IN, OUT};
 
     void addFilters(FilterType filterType, List<F> filtersToAdd);
 
