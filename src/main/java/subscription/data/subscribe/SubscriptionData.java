@@ -1,9 +1,11 @@
 package subscription.data.subscribe;
 
+import subscription.data.aam.ExtendedConversation;
+
 import java.util.function.Predicate;
 
 /**
- * T - predicate object to use
+ * P - predicate object to use, for example: in aam use ExtendConv
  * O - orig subscribe
  *
  * predicate - actual predicate to use

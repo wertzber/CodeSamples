@@ -17,7 +17,7 @@ public class AamEventInFilter implements SubscriptionFilter {
     public boolean filter(Object eventInput) {
         if(eventInput instanceof Conversation){
             Conversation event = (Conversation)eventInput;
-            if(event.brandId!=null && event.endTs > 0) return true;
+            if(event.brandId!=null && event.startTs > 0) return true;
             else return false;
         } else {
             //skip

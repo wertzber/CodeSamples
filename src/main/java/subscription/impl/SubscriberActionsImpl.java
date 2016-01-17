@@ -3,7 +3,6 @@ package subscription.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import subscription.api.SubscriptionActions;
-import subscription.data.aam.AamPredicate;
 import subscription.data.subscribe.SubscriptionData;
 import subscription.factory.PredicateFactory;
 
@@ -17,22 +16,14 @@ import java.util.function.Predicate;
  * O - orig subscription msg(SubscribeExConversation)
  * P - predicate
  */
-public class SubscriberActionsImpl<T, O, P> implements SubscriptionActions<P, O> {
+public class SubscriberActionsImpl<T, O> implements SubscriptionActions<T, O> {
 
     private static final Logger logger = LoggerFactory.getLogger(SubscriberActionsImpl.class);
 
     //account subs use the account as main key, and subsId as secondary key.
-    private Map<String, Map<String, SubscriptionData<P, O>>> accountSubscriptionMap = new ConcurrentHashMap<>(50);
+    private Map<String, Map<String, SubscriptionData<T, O>>> accountSubscriptionMap = new ConcurrentHashMap<>(50);
     //Map user to all its subscriptions
     private Map<String, List<String>> userSubscriptionMap = new ConcurrentHashMap<>(50);
-
-    private Class<P> predicateClass;
-
-    public SubscriberActionsImpl(Class<P> predicateClass) {
-        this.predicateClass = predicateClass;
-    }
-
-
 
     @Override
     public boolean removeAccount(String account) {
@@ -42,7 +33,7 @@ public class SubscriberActionsImpl<T, O, P> implements SubscriptionActions<P, O>
 
     @Override
     public boolean removeSubscriber(String account, String subscribeId) {
-        Map<String, SubscriptionData<P, O>> specificAccountSubscriptions = accountSubscriptionMap.get(account);
+        Map<String, SubscriptionData<T, O>> specificAccountSubscriptions = accountSubscriptionMap.get(account);
         accountSubscriptionMap.remove(subscribeId);
 
         return true;
@@ -52,7 +43,7 @@ public class SubscriberActionsImpl<T, O, P> implements SubscriptionActions<P, O>
     public boolean removeSubscriberUser(String account, String userId) {
         List<String> userIds = userSubscriptionMap.get(userId);
 
-        Map<String, SubscriptionData<P, O>> accountMap = accountSubscriptionMap.get(account);
+        Map<String, SubscriptionData<T, O>> accountMap = accountSubscriptionMap.get(account);
         for(String id : userIds){
             accountMap.remove(id);
             logger.debug("removed Subs id: {} ", id);
@@ -62,7 +53,7 @@ public class SubscriberActionsImpl<T, O, P> implements SubscriptionActions<P, O>
     }
 
     @Override
-    public String addSubscriber(String account, String userId,
+    public String addSubscriber(String account, String userId, Predicate predicate,
                                  O subscribeRequest) {
         String subscriptionId = null;
         //if userId has no query request yet. that is he is not registered to anything yet so create map fo user
@@ -73,7 +64,7 @@ public class SubscriberActionsImpl<T, O, P> implements SubscriptionActions<P, O>
         subscriptionId = UUID.randomUUID().toString();
         final String tempid = subscriptionId;
         accountSubscriptionMap.compute(account, (subscId, innerMap) -> {
-            createSubscribeData(subscId, subscribeRequest, tempid, innerMap);
+            createSubscribeData(subscId, subscribeRequest, tempid, predicate, innerMap);
             return innerMap;
         });
         logger.debug("user  id {} added subscription  with account =  {} and subscribe Id {}",userId, account, subscriptionId);
@@ -83,13 +74,13 @@ public class SubscriberActionsImpl<T, O, P> implements SubscriptionActions<P, O>
     }
 
     @Override
-    public Map<String, SubscriptionData<P, O>> getAccountSubscriptions(String account) {
+    public Map<String, SubscriptionData<T, O>> getAccountSubscriptions(String account) {
         return accountSubscriptionMap.get(account);
     }
 
     @Override
-    public SubscriptionData<P,O> getSubscription(String account, String subscribeId) {
-        return (SubscriptionData<P, O>) accountSubscriptionMap.get(account).entrySet()
+    public SubscriptionData<T, O> getSubscription(String account, String subscribeId) {
+        return (SubscriptionData<T, O>) accountSubscriptionMap.get(account).entrySet()
                 .stream()
                 .filter(id -> id.equals(subscribeId))
                 .findFirst().get();
@@ -101,12 +92,13 @@ public class SubscriberActionsImpl<T, O, P> implements SubscriptionActions<P, O>
     }
 
 
-    private void createSubscribeData(String subscId, O subscription, String subscriptionId,
-                                     Map<String,SubscriptionData<P, O>> innerMap) {
+    private void createSubscribeData(String subscId, O subscription, String subscriptionId, Predicate predicate,
+                                     Map<String,SubscriptionData<T, O>> innerMap) {
 
-        SubscriptionData<P, O> subscriptionMapEntry = innerMap.get(subscId);
-        Predicate<P> predicate = PredicateFactory.getPredicate(predicateClass, subscription);
-        innerMap.put(subscriptionId, new SubscriptionData<P, O>(
+        SubscriptionData<T, O> subscriptionMapEntry = innerMap.get(subscId);
+        //Predicate<P> predicate = PredicateFactory.getPredicate(predicateClass, subscription);
+
+        innerMap.put(subscriptionId, new SubscriptionData<T, O>(
                 predicate,
                 subscription,
                 subscriptionId));

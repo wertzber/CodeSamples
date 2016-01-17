@@ -4,23 +4,24 @@ import subscription.data.subscribe.SubscriptionData;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Created by eladw on 1/4/2016.
  * Query is a single subscription data. According to the subscription app will decide if to send notification
  * There could be many.
  * This class in charge of actions which related to query.
- * T - predicate object to use
+ * T - predicate object to use, such as ExConv in case of aam
  * O - orig subscribe
  */
-public interface SubscriptionActions<P,O> {
+public interface SubscriptionActions<T,O> {
 
     boolean removeAccount(String account);   //remove
     boolean removeSubscriber(String account, String subscribeId);
     boolean removeSubscriberUser(String account, String userId);
-    String addSubscriber(String account, String userId, O incomingSubscribe);
-    Map<String, SubscriptionData<P, O>> getAccountSubscriptions(String account);
-    SubscriptionData<P,O> getSubscription(String account, String subscribeId);
+    String addSubscriber(String account, String userId, Predicate predicate, O incomingSubscribe);
+    Map<String, SubscriptionData<T, O>> getAccountSubscriptions(String account);
+    SubscriptionData<T,O> getSubscription(String account, String subscribeId);
     List<String> getUserSubscriptions(String account, String userId);
 
 

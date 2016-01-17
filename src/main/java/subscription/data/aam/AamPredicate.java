@@ -36,11 +36,11 @@ public class AamPredicate implements Predicate<ExtendedConversation> {
         init();
         return byAgentId(extendedConversation)
                 .byBrandId(queryRequest.brandId, extendedConversation)
-                .byConsumerId(queryRequest.consumerId, extendedConversation)
+//                .byConsumerId(queryRequest.consumerId, extendedConversation)
                 .byConversationStates(queryRequest.convState, extendedConversation)
-                .bymaxETTR(queryRequest.maxETTR, extendedConversation)
-                .byMaxLastUpdateTime(queryRequest.maxLastUpdatedTime, extendedConversation)
-                .byMinLastUpdateTime(queryRequest.minLastUpdatedTime, extendedConversation)
+//                .bymaxETTR(queryRequest.maxETTR, extendedConversation)
+//                .byMaxLastUpdateTime(queryRequest.maxLastUpdatedTime, extendedConversation)
+//                .byMinLastUpdateTime(queryRequest.minLastUpdatedTime, extendedConversation)
                 .finalResult();
 
     }
@@ -167,12 +167,15 @@ public class AamPredicate implements Predicate<ExtendedConversation> {
 
     private boolean finalResult() {
 
-        return predicateAgentIdResult && predicateConsumerResult
-                && predicateMaxTimeResult
-                && predicateMinTimeResult
-                && predicateEttrResult
-                && predicateConvStateResult
+        return predicateConvStateResult
                 && predicateBrandIdResult;
     }
 
+    public SubscribeExConversations getQueryRequest() {
+        return queryRequest;
+    }
+
+    public void setQueryRequest(SubscribeExConversations queryRequest) {
+        this.queryRequest = queryRequest;
+    }
 }

@@ -1,10 +1,17 @@
 package subscription.test;
 
+import com.liveperson.api.ams.aam.ExConversationChangeNotification;
 import com.liveperson.api.ams.aam.SubscribeExConversations;
 import com.liveperson.api.ams.aam.SubscribeExConversationsBuilder;
 import com.liveperson.api.ams.aam.UnsubscribeExConversations;
+import com.liveperson.api.ams.aam.types.ExtendedConversationDetails;
+import com.liveperson.api.ams.cm.types.ConversationState;
+import com.liveperson.api.ams.types.TTR;
+import com.liveperson.api.ams.types.TTRType;
 import com.liveperson.api.websocket.WsRequestMsg;
 import com.liveperson.api.websocket.WsResponseMsg;
+import com.liveperson.messaging.async.types.cm.entities.Conversation;
+import com.liveperson.messaging.async.types.cm.entities.ConversationBuilder;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,8 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import subscription.api.SubscriptionFilter;
 import subscription.api.SubscriptionFilterManager;
+import subscription.converter.AamConverterIn;
+import subscription.converter.AamConverterOut;
 import subscription.data.FilterType;
 import subscription.data.aam.AamPredicate;
+import subscription.data.aam.ExtendedConversation;
 import subscription.data.filters.AamEventInFilter;
 import subscription.data.subscribe.SubscriptionData;
 import subscription.impl.SubscriptionFilterManagerImpl;
@@ -21,7 +31,9 @@ import subscription.impl.SubscriptionServerAamImpl;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -38,8 +50,11 @@ public class AamServerSubscriptionTest {
     WsResponseMsg wsResponseMsg;
     @Before
     public void setupMock() {
+
         subscribeReq = new WsRequestMsg("123", new SubscribeExConversationsBuilder()
-                        .withBrandId(counter.toString()).build());
+                        .withBrandId("brand1")
+                        .withConvState(EnumSet.of(ConversationState.OPEN))
+                        .build());
         wsResponseMsg =  new WsResponseMsg(
                 "11",
                 Response.Status.OK,
@@ -60,7 +75,10 @@ public class AamServerSubscriptionTest {
     public void aamSubsUnsubBaseTest(){
         QueueTestSender<String> sender = new QueueTestSender<>();
         SubscriptionServerAamImpl aamServerSubscriber = new SubscriptionServerAamImpl(
-                new SubscriptionFilterManagerImpl(), sender);
+                new SubscriptionFilterManagerImpl(),
+                new AamConverterIn(),
+                new AamConverterOut(),
+                sender);
         List<SubscriptionFilter> filters = new ArrayList<>();
         filters.add(new AamEventInFilter());
         aamServerSubscriber.getAamFilterManager().addFilters(FilterType.IN, filters);
@@ -79,15 +97,34 @@ public class AamServerSubscriptionTest {
         int size = aamServerSubscriber.getAamSubscriptionActions().getAccountSubscriptions("brand1").size();
         Assert.assertEquals("Some subscribers were not subscribed ", 1, size);
 
+
+        Conversation conversation = new ConversationBuilder()
+                .withBrandId("brand1")
+                .withConvId("conv1")
+                .withStartTs(1l)
+                .withState(ConversationState.OPEN)
+                .withTtr(new TTR())
+                .build();
+        aamServerSubscriber.onEvent(conversation, "brand1", null, null);
+        aamServerSubscriber.onEvent(conversation, "brand1", null, null);
+        aamServerSubscriber.onEvent(conversation, "brand1", null, null);
+
+        try {
+            Thread.sleep(6000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         //unsubscribe
         List<String> userSubscriptions = aamServerSubscriber.
                 getAamSubscriptionActions().getUserSubscriptions("brand1", "user1");
         String subsId = userSubscriptions.get(0);
         subscribeReq = new WsRequestMsg("123", new UnsubscribeExConversations(subsId));
 
-        aamServerSubscriber.onUnSubscribe(subscribeReq,"brand1","user1", null);
+        aamServerSubscriber.onUnSubscribe(subscribeReq, "brand1", "user1", null);
         size = aamServerSubscriber.getAamSubscriptionActions().getAccountSubscriptions("brand1").size();
         Assert.assertEquals("Some unsubscribers were not unsubscribed ", 0, size);
+
 
     }
 }
