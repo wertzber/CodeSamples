@@ -5,6 +5,7 @@ import com.liveperson.api.ams.aam.SubscribeExConversationsBuilder;
 import com.liveperson.api.ams.aam.UnsubscribeExConversations;
 import com.liveperson.api.ams.cm.SubscribeConversations;
 import com.liveperson.api.ams.cm.types.ConversationState;
+import com.liveperson.api.ams.cm.types.ParticipantRole;
 import com.liveperson.api.ams.types.TTR;
 import com.liveperson.api.websocket.WsRequestMsg;
 import com.liveperson.api.websocket.WsResponseMsg;
@@ -22,15 +23,15 @@ import subscription.converter.CmConverterIn;
 import subscription.converter.CmConverterOut;
 import subscription.data.FilterType;
 import subscription.data.filters.AamEventInFilter;
+import subscription.data.subscribe.SubscriptionData;
 import subscription.impl.SubscriptionFilterManagerImpl;
 import subscription.impl.SubscriptionServerAamImpl;
 import subscription.impl.SubscriptionServerCmImpl;
 import subscription.test.QueueTestSender;
 
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -96,13 +97,13 @@ public class CmServerSubscriptionTest {
         int size = aamServerSubscriber.getCmSubscriptionActions().getAccountSubscriptions("brand1").size();
         Assert.assertEquals("Some subscribers were not subscribed ", 1, size);
 
-
         Conversation conversation = new ConversationBuilder()
                 .withBrandId("brand1")
                 .withConvId("conv1")
                 .withStartTs(1l)
                 .withState(ConversationState.OPEN)
                 .withTtr(new TTR())
+                .withParticipants(generateParticipants("123", "456"))
                 .build();
         aamServerSubscriber.onEvent(conversation, "brand1", null, null);
         aamServerSubscriber.onEvent(conversation, "brand1", null, null);
@@ -115,15 +116,22 @@ public class CmServerSubscriptionTest {
         }
 
         //unsubscribe
-        List<String> userSubscriptions = aamServerSubscriber.
+        List<SubscriptionData<Conversation, SubscribeConversations>> userSubscriptions = aamServerSubscriber.
                 getCmSubscriptionActions().getUserSubscriptions("brand1", "user1");
-        String subsId = userSubscriptions.get(0);
-        subscribeReq = new WsRequestMsg("123", new UnsubscribeExConversations(subsId));
+        SubscriptionData<Conversation, SubscribeConversations> subs = userSubscriptions.get(0);
+        subscribeReq = new WsRequestMsg("123", new UnsubscribeExConversations(subs.getSubscriptionId()));
 
         aamServerSubscriber.onUnSubscribe(subscribeReq, "brand1", "user1", null);
         size = aamServerSubscriber.getCmSubscriptionActions().getAccountSubscriptions("brand1").size();
         Assert.assertEquals("Some unsubscribers were not unsubscribed ", 0, size);
 
 
+    }
+
+    public static Map<ParticipantRole, Collection<String>> generateParticipants(String agentId,String conusmerId) {
+        final Map<ParticipantRole, Collection<String>> participants = new HashMap<>(2);
+        participants.put(ParticipantRole.CONSUMER, Arrays.asList(conusmerId));
+        participants.put(ParticipantRole.ASSIGNED_AGENT, Arrays.asList(agentId));
+        return participants;
     }
 }

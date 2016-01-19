@@ -9,6 +9,7 @@ import subscription.factory.PredicateFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Created by eladw on 1/4/2016.
@@ -53,7 +54,7 @@ public class SubscriberActionsImpl<T, O> implements SubscriptionActions<T, O> {
     }
 
     @Override
-    public String addSubscriber(String account, String userId, Predicate predicate,
+    public String addSubscriber(String account, String userId, Predicate<T> predicate,
                                  O subscribeRequest) {
         String subscriptionId = null;
         //if userId has no query request yet. that is he is not registered to anything yet so create map fo user
@@ -87,8 +88,10 @@ public class SubscriberActionsImpl<T, O> implements SubscriptionActions<T, O> {
     }
 
     @Override
-    public List<String> getUserSubscriptions(String account, String userId) {
-        return userSubscriptionMap.get(userId);
+    public List<SubscriptionData<T, O>> getUserSubscriptions(String account, String userId) {
+
+        List<String> subsIds = userSubscriptionMap.get(userId);
+        return subsIds.stream().map(id-> accountSubscriptionMap.get(account).get(id)).collect(Collectors.toList());
     }
 
 

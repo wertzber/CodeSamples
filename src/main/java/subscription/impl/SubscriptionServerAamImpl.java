@@ -109,7 +109,7 @@ public class SubscriptionServerAamImpl implements SubscriptionServer<WsRequestMs
                                             .withConvId(exConv.getAamConversation().convId)
                                             .withBrandId(exConv.getAamConversation().brandId)
                                             .withNote("convert out")
-                                            .withState(exConv.getAamConversation().state)
+                            .withState(exConv.getAamConversation().state)
                                             .build())
                     .build();
 

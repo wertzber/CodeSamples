@@ -18,7 +18,9 @@ import subscription.api.SubscriptionFilter;
 import subscription.converter.AamConverterIn;
 import subscription.converter.AamConverterOut;
 import subscription.data.FilterType;
+import subscription.data.aam.ExtendedConversation;
 import subscription.data.filters.AamEventInFilter;
+import subscription.data.subscribe.SubscriptionData;
 import subscription.impl.SubscriptionFilterManagerImpl;
 import subscription.impl.SubscriptionServerAamImpl;
 import subscription.test.QueueTestSender;
@@ -109,10 +111,10 @@ public class AamServerSubscriptionTest {
         }
 
         //unsubscribe
-        List<String> userSubscriptions = aamServerSubscriber.
+        List<SubscriptionData<ExtendedConversation, SubscribeExConversations>> userSubscriptions = aamServerSubscriber.
                 getAamSubscriptionActions().getUserSubscriptions("brand1", "user1");
-        String subsId = userSubscriptions.get(0);
-        subscribeReq = new WsRequestMsg("123", new UnsubscribeExConversations(subsId));
+        SubscriptionData<ExtendedConversation, SubscribeExConversations> subs = userSubscriptions.get(0);
+        subscribeReq = new WsRequestMsg("123", new UnsubscribeExConversations(subs.getSubscriptionId()));
 
         aamServerSubscriber.onUnSubscribe(subscribeReq, "brand1", "user1", null);
         size = aamServerSubscriber.getAamSubscriptionActions().getAccountSubscriptions("brand1").size();

@@ -10,6 +10,9 @@ public interface SubscriptionConverter<IN,OUT> {
         System.err.print("SubscriptionConverter: convert not implemented");
         return null;
     }
-    OUT convert(String subscribeId, IN input);
+    default OUT convert(String subscribeId, IN input){
+        System.err.print("SubscriptionConverter: convert(subscribeId,Input) not implemented ");
+        return null;
+    }
 
 }
