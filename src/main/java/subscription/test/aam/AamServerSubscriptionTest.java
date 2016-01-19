@@ -14,22 +14,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import subscription.api.SubscriptionFilter;
 import subscription.converter.AamConverterIn;
 import subscription.converter.AamConverterOut;
-import subscription.data.FilterType;
 import subscription.data.aam.ExtendedConversation;
-import subscription.data.filters.AamEventInFilter;
 import subscription.data.subscribe.SubscriptionData;
-import subscription.impl.SubscriptionFilterManagerImpl;
 import subscription.impl.SubscriptionServerAamImpl;
 import subscription.test.QueueTestSender;
 
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * Created by eladw on 1/6/2016.
@@ -40,9 +36,17 @@ public class AamServerSubscriptionTest {
     private static final Logger logger = LoggerFactory.getLogger(AamServerSubscriptionTest.class);
 
     private WsRequestMsg subscribeReq;
-
-    private static AtomicInteger counter = new AtomicInteger();
     WsResponseMsg wsResponseMsg;
+
+    Predicate<Conversation> nonNullPredicate = Objects::nonNull;
+
+    Predicate<Conversation> testConversationState = (Conversation conv)-> {
+        return ConversationState.OPEN.equals(conv.state);
+    };
+    Predicate<Conversation> testConversationBrand = (Conversation conv)-> {
+        return conv.brandId!=null;
+    };
+
     @Before
     public void setupMock() {
 
@@ -69,14 +73,14 @@ public class AamServerSubscriptionTest {
     @Test
     public void aamSubsUnsubBaseTest(){
         QueueTestSender<String> sender = new QueueTestSender<>();
+        Predicate filtersIn = nonNullPredicate.and(testConversationState)
+                .and(testConversationBrand);
+
         SubscriptionServerAamImpl aamServerSubscriber = new SubscriptionServerAamImpl(
-                new SubscriptionFilterManagerImpl(),
+                filtersIn,
                 new AamConverterIn(),
                 new AamConverterOut(),
                 sender);
-        List<SubscriptionFilter> filters = new ArrayList<>();
-        filters.add(new AamEventInFilter());
-        aamServerSubscriber.getAamFilterManager().addFilters(FilterType.IN, filters);
 
         Runnable task1 = () -> {
             sender.run();

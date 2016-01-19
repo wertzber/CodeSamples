@@ -4,10 +4,7 @@ import com.liveperson.api.ams.aam.ExConversationChangeNotification;
 import com.liveperson.api.ams.aam.SubscribeExConversations;
 import com.liveperson.api.ams.aam.types.ExtendedConversationDetails;
 import com.liveperson.api.ams.aam.types.ExtendedConversationDetailsBuilder;
-import com.liveperson.api.ams.cm.types.ConversationDetails;
 import com.liveperson.api.ams.cm.types.ConversationDetailsBuilder;
-import com.liveperson.api.ams.cm.types.ConversationState;
-import com.liveperson.api.server.RequestMsg;
 import com.liveperson.api.websocket.WsRequestMsg;
 import com.liveperson.messaging.async.types.cm.entities.Conversation;
 import org.slf4j.Logger;
@@ -16,10 +13,9 @@ import subscription.api.*;
 import subscription.data.FilterType;
 import subscription.data.aam.AamPredicate;
 import subscription.data.aam.ExtendedConversation;
-import subscription.data.aam.ExtendedConversationBuilder;
 import subscription.data.subscribe.SubscriptionData;
-import subscription.factory.PredicateFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -35,17 +31,17 @@ public class SubscriptionServerAamImpl implements SubscriptionServer<WsRequestMs
 
     SubscriptionActions<ExtendedConversation, SubscribeExConversations> aamSubscriptionActions = new SubscriberActionsImpl();
 
-    private SubscriptionFilterManager<SubscriptionFilter> aamFilterManager;
+    private Predicate aamInFilter;
     private SubscriptionConverter<Conversation, ExtendedConversation> incomingEventsConverter;
     private SubscriptionConverter<ExtendedConversationDetails, ExConversationChangeNotification> outgoingEventsConverter;
     private SubscriptionSender sender;
 
-    public SubscriptionServerAamImpl(SubscriptionFilterManager<SubscriptionFilter> subscriptionFilterManager,
+    public SubscriptionServerAamImpl(Predicate aamInFilter,
                                      SubscriptionConverter<Conversation, ExtendedConversation> incomingEventsConverter,
                                      SubscriptionConverter<ExtendedConversationDetails,ExConversationChangeNotification> outgoingEventsConverter,
                                      SubscriptionSender sender){
 
-        this.aamFilterManager = subscriptionFilterManager;
+        this.aamInFilter = aamInFilter;
         this.incomingEventsConverter = incomingEventsConverter;
         this.outgoingEventsConverter = outgoingEventsConverter;
         this.sender = sender;
@@ -56,19 +52,19 @@ public class SubscriptionServerAamImpl implements SubscriptionServer<WsRequestMs
     public void onSubscribe(WsRequestMsg inSubscribeRequest,String accountId, String userId,
                             Map<String, String> params) {
         SubscribeExConversations inSubscribeBody = (SubscribeExConversations) inSubscribeRequest.body;
-        boolean filterRes = aamFilterManager.testFilters(FilterType.IN, inSubscribeBody);
-        if(filterRes){
+//        String subsId = aamInFilter.stream().filter(pred -> pred.test(inSubscribeBody))
+//                .map(key -> aamSubscriptionActions.addSubscriber(
+//                        accountId, userId, new AamPredicate(inSubscribeBody), inSubscribeBody))
+//                .collect(Collectors.joining());
 
-            String subsId = aamSubscriptionActions.addSubscriber(
+        String subsId = aamSubscriptionActions.addSubscriber(
                     accountId, userId, new AamPredicate(inSubscribeBody), inSubscribeBody);
             try {
                 sender.send("onSubscribe success, subs id:" + subsId);
             } catch (InterruptedException e) {
                 logger.error("Failed to send update of id: " + subsId, e);
             }
-        } else {
-            logger.warn("subscription failed " + inSubscribeBody);
-        }
+
     }
 
     @Override
@@ -89,38 +85,37 @@ public class SubscriptionServerAamImpl implements SubscriptionServer<WsRequestMs
     @Override
     public void onEvent(Object event, String account, String userId, Map<String, String> params ) {
         ExtendedConversation exConv = null;
-        //filter in
-        boolean isValid = getAamFilterManager().testFilters(FilterType.IN, event);
-        if(isValid){
-            //convertFormat
-            if(event instanceof Conversation){
-                exConv = this.incomingEventsConverter.convert((Conversation) event);
-            } else {
-                logger.error("Unsupported incoming event " + event.getClass());
-            }
 
-            //execute predicate
-            Map<String, SubscriptionData<ExtendedConversation, SubscribeExConversations>> accountSubscriptions =
-                    aamSubscriptionActions.getAccountSubscriptions(account);
 
-            final ExtendedConversationDetails finalExConvDetails = new ExtendedConversationDetailsBuilder()
-                    .withConvId(exConv.getAamConversation().convId)
-                    .withConversationDetails(new ConversationDetailsBuilder()
-                                            .withConvId(exConv.getAamConversation().convId)
-                                            .withBrandId(exConv.getAamConversation().brandId)
-                                            .withNote("convert out")
-                            .withState(exConv.getAamConversation().state)
-                                            .build())
-                    .build();
+        //convertFormat
+        if(event instanceof Conversation){
+            exConv = this.incomingEventsConverter.convert((Conversation) event);
+        } else {
+            logger.error("Unsupported incoming event " + event.getClass());
+        }
 
-            final ExtendedConversation finalExConv = exConv;
-            List<ExConversationChangeNotification> notifications = accountSubscriptions.entrySet().stream()
-                    .filter(val -> {
-                        return val.getValue().getSubscribePredicate().test(finalExConv);
-                    })
-                    //convert out
-                    .map(key -> this.outgoingEventsConverter.convert(key.getValue().getSubscriptionId(), finalExConvDetails))
-                    .collect(Collectors.toList());
+        //execute predicate
+        Map<String, SubscriptionData<ExtendedConversation, SubscribeExConversations>> accountSubscriptions =
+                aamSubscriptionActions.getAccountSubscriptions(account);
+
+        final ExtendedConversationDetails finalExConvDetails = new ExtendedConversationDetailsBuilder()
+                .withConvId(exConv.getAamConversation().convId)
+                .withConversationDetails(new ConversationDetailsBuilder()
+                        .withConvId(exConv.getAamConversation().convId)
+                        .withBrandId(exConv.getAamConversation().brandId)
+                        .withNote("convert out")
+                        .withState(exConv.getAamConversation().state)
+                        .build())
+                .build();
+
+        final ExtendedConversation finalExConv = exConv;
+        List<ExConversationChangeNotification> notifications = accountSubscriptions.entrySet().stream()
+                .filter(val -> {
+                    return val.getValue().getSubscribePredicate().test(finalExConv);
+                })
+                //convert out
+                .map(key -> this.outgoingEventsConverter.convert(key.getValue().getSubscriptionId(), finalExConvDetails))
+                .collect(Collectors.toList());
 
             //filter out - not implemented yet
 
@@ -130,9 +125,6 @@ public class SubscriptionServerAamImpl implements SubscriptionServer<WsRequestMs
             } catch (InterruptedException e) {
                 logger.info("failed to send msg ", e);
             }
-        } else {
-            logger.warn("Not valid input event {}", event );
-        }
 
     }
 
@@ -140,9 +132,6 @@ public class SubscriptionServerAamImpl implements SubscriptionServer<WsRequestMs
         return aamSubscriptionActions;
     }
 
-    public SubscriptionFilterManager<SubscriptionFilter> getAamFilterManager() {
-        return aamFilterManager;
-    }
 
     public SubscriptionSender getSender() {
         return sender;

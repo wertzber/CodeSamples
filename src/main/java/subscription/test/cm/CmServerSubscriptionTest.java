@@ -1,7 +1,5 @@
 package subscription.test.cm;
 
-import com.liveperson.api.ams.aam.SubscribeExConversations;
-import com.liveperson.api.ams.aam.SubscribeExConversationsBuilder;
 import com.liveperson.api.ams.aam.UnsubscribeExConversations;
 import com.liveperson.api.ams.cm.SubscribeConversations;
 import com.liveperson.api.ams.cm.types.ConversationState;
@@ -16,36 +14,33 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import subscription.api.SubscriptionFilter;
-import subscription.converter.AamConverterIn;
-import subscription.converter.AamConverterOut;
 import subscription.converter.CmConverterIn;
 import subscription.converter.CmConverterOut;
-import subscription.data.FilterType;
-import subscription.data.filters.AamEventInFilter;
 import subscription.data.subscribe.SubscriptionData;
-import subscription.impl.SubscriptionFilterManagerImpl;
-import subscription.impl.SubscriptionServerAamImpl;
 import subscription.impl.SubscriptionServerCmImpl;
 import subscription.test.QueueTestSender;
 
 import javax.ws.rs.core.Response;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 /**
  * Created by eladw on 1/6/2016.
  */
 //@RunWith(PowerMockRunner.class)
 public class CmServerSubscriptionTest {
+    Predicate<Conversation> nonNullPredicate = Objects::nonNull;
+
+    Predicate<Conversation> testConversationState = (Conversation conv)-> {
+        return ConversationState.OPEN.equals(conv.state);
+    };
+    Predicate<Conversation> testConversationBrand = (Conversation conv)-> {
+        return conv.brandId!=null;
+    };
 
     private static final Logger logger = LoggerFactory.getLogger(CmServerSubscriptionTest.class);
-
     private WsRequestMsg subscribeReq;
-
-    private static AtomicInteger counter = new AtomicInteger();
-    WsResponseMsg wsResponseMsg;
+    private WsResponseMsg wsResponseMsg;
     @Before
     public void setupMock() {
 
@@ -74,14 +69,14 @@ public class CmServerSubscriptionTest {
     @Test
     public void cmSubsUnsubBaseTest(){
         QueueTestSender<String> sender = new QueueTestSender<>();
+        Predicate filtersIn = nonNullPredicate.and(testConversationState)
+                .and(testConversationBrand);
+
         SubscriptionServerCmImpl aamServerSubscriber = new SubscriptionServerCmImpl(
-                new SubscriptionFilterManagerImpl(),
+                filtersIn,
                 new CmConverterIn(),
                 new CmConverterOut(),
                 sender);
-        List<SubscriptionFilter> filters = new ArrayList<>();
-        filters.add(new AamEventInFilter());
-        aamServerSubscriber.getAamFilterManager().addFilters(FilterType.IN, filters);
 
         Runnable task1 = () -> {
             sender.run();
@@ -89,13 +84,13 @@ public class CmServerSubscriptionTest {
         };
         new Thread(task1).start();
         long before = System.currentTimeMillis();
-        for(int i=1; i<=1; i++ ){
+        for(int i=1; i<=2; i++ ){
             aamServerSubscriber.onSubscribe(subscribeReq, "brand1", "user" + i, null);
         }
         long aftre = System.currentTimeMillis();
         logger.info("Execution: {} msec", aftre - before);
         int size = aamServerSubscriber.getCmSubscriptionActions().getAccountSubscriptions("brand1").size();
-        Assert.assertEquals("Some subscribers were not subscribed ", 1, size);
+        Assert.assertEquals("Some subscribers were not subscribed ", 2, size);
 
         Conversation conversation = new ConversationBuilder()
                 .withBrandId("brand1")
@@ -123,7 +118,7 @@ public class CmServerSubscriptionTest {
 
         aamServerSubscriber.onUnSubscribe(subscribeReq, "brand1", "user1", null);
         size = aamServerSubscriber.getCmSubscriptionActions().getAccountSubscriptions("brand1").size();
-        Assert.assertEquals("Some unsubscribers were not unsubscribed ", 0, size);
+        Assert.assertEquals("Some unsubscribers were not unsubscribed ", 1, size);
 
 
     }

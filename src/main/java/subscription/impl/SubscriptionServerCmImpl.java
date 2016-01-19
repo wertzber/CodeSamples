@@ -21,6 +21,7 @@ import subscription.data.subscribe.SubscriptionData;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -33,17 +34,17 @@ public class SubscriptionServerCmImpl implements SubscriptionServer<WsRequestMsg
 
     SubscriptionActions<Conversation, SubscribeConversations> cmSubscriptionActions = new SubscriberActionsImpl();
 
-    private SubscriptionFilterManager<SubscriptionFilter> cmFilterManager;
+    private Predicate cmInFilter;
     private SubscriptionConverter<Conversation, ConversationDetails> incomingEventsConverter;
     private SubscriptionConverter<ConversationDetails, ConversationChangeNotification> outgoingEventsConverter;
     private SubscriptionSender sender;
 
-    public SubscriptionServerCmImpl(SubscriptionFilterManager<SubscriptionFilter> subscriptionFilterManager,
+    public SubscriptionServerCmImpl(Predicate cmInFilter,
                                     SubscriptionConverter<Conversation, ConversationDetails> incomingEventsConverter,
                                     SubscriptionConverter<ConversationDetails, ConversationChangeNotification> outgoingEventsConverter,
                                     SubscriptionSender sender){
 
-        this.cmFilterManager = subscriptionFilterManager;
+        this.cmInFilter = cmInFilter;
         this.incomingEventsConverter = incomingEventsConverter;
         this.outgoingEventsConverter = outgoingEventsConverter;
         this.sender = sender;
@@ -54,18 +55,12 @@ public class SubscriptionServerCmImpl implements SubscriptionServer<WsRequestMsg
     public void onSubscribe(WsRequestMsg inSubscribeRequest,String accountId, String userId,
                             Map<String, String> params) {
         SubscribeConversations inSubscribeBody = (SubscribeConversations) inSubscribeRequest.body;
-        boolean filterRes = cmFilterManager.testFilters(FilterType.IN, inSubscribeBody);
-        if(filterRes){
-
-            String subsId = cmSubscriptionActions.addSubscriber(
-                    accountId, userId, new ConversationPredicate(inSubscribeBody), inSubscribeBody);
-            try {
-                sender.send("onSubscribe success, subs id:" + subsId);
-            } catch (InterruptedException e) {
-                logger.error("Failed to send update of id: " + subsId, e);
-            }
-        } else {
-            logger.warn("subscription failed " + inSubscribeBody);
+        String subsId = cmSubscriptionActions.addSubscriber(
+                accountId, userId, new ConversationPredicate(inSubscribeBody), inSubscribeBody);
+        try {
+            sender.send("onSubscribe success, subs id:" + subsId);
+        } catch (InterruptedException e) {
+            logger.error("Failed to send update of id: " + subsId, e);
         }
     }
 
@@ -87,16 +82,10 @@ public class SubscriptionServerCmImpl implements SubscriptionServer<WsRequestMsg
     @Override
     public void onEvent(Object event, String account, String userId, Map<String, String> params ) {
         ConversationDetails convDetails = null;
-        //filter in
-        boolean isValid = getAamFilterManager().testFilters(FilterType.IN, event);
-        if(isValid){
-            //convertFormat
-            if(event instanceof Conversation){
-                convDetails = this.incomingEventsConverter.convert((Conversation) event);
-            } else {
-                logger.error("Unsupported incoming event " + event.getClass());
-            }
+        //convertFormat
+        if(event instanceof Conversation && cmInFilter.test(event)){
 
+            convDetails = this.incomingEventsConverter.convert((Conversation) event);
             //execute predicate
             Map<String, SubscriptionData<Conversation, SubscribeConversations>> accountSubscriptions =
                     cmSubscriptionActions.getAccountSubscriptions(account);
@@ -113,7 +102,7 @@ public class SubscriptionServerCmImpl implements SubscriptionServer<WsRequestMsg
                     .filter(val -> {
                         return val.getValue().getSubscribePredicate().test((Conversation) event);
                     })
-                    //convert out
+                            //convert out
                     .map(key -> this.outgoingEventsConverter.convert(key.getValue().getSubscriptionId(),
                             finalConvDetails))
                     .collect(Collectors.toList());
@@ -127,17 +116,15 @@ public class SubscriptionServerCmImpl implements SubscriptionServer<WsRequestMsg
                 logger.info("failed to send msg ", e);
             }
         } else {
-            logger.warn("Not valid input event {}", event );
+            logger.error("Unsupported incoming event " + event.getClass());
         }
+
+
 
     }
 
     public SubscriptionActions<Conversation, SubscribeConversations> getCmSubscriptionActions() {
         return cmSubscriptionActions;
-    }
-
-    public SubscriptionFilterManager<SubscriptionFilter> getAamFilterManager() {
-        return cmFilterManager;
     }
 
     public SubscriptionSender getSender() {
