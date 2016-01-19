@@ -43,4 +43,10 @@ public class AamConverterIn implements SubscriptionConverter<Conversation, Exten
             return null;
         }
     }
+
+    @Override
+    //No use to the subs id
+    public ExtendedConversation convert(String subscribeId, Conversation input) {
+        return convert(input);
+    }
 }

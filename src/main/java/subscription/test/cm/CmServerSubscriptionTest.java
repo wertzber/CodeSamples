@@ -1,13 +1,11 @@
-package subscription.test;
+package subscription.test.cm;
 
-import com.liveperson.api.ams.aam.ExConversationChangeNotification;
 import com.liveperson.api.ams.aam.SubscribeExConversations;
 import com.liveperson.api.ams.aam.SubscribeExConversationsBuilder;
 import com.liveperson.api.ams.aam.UnsubscribeExConversations;
-import com.liveperson.api.ams.aam.types.ExtendedConversationDetails;
+import com.liveperson.api.ams.cm.SubscribeConversations;
 import com.liveperson.api.ams.cm.types.ConversationState;
 import com.liveperson.api.ams.types.TTR;
-import com.liveperson.api.ams.types.TTRType;
 import com.liveperson.api.websocket.WsRequestMsg;
 import com.liveperson.api.websocket.WsResponseMsg;
 import com.liveperson.messaging.async.types.cm.entities.Conversation;
@@ -18,31 +16,30 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import subscription.api.SubscriptionFilter;
-import subscription.api.SubscriptionFilterManager;
 import subscription.converter.AamConverterIn;
 import subscription.converter.AamConverterOut;
+import subscription.converter.CmConverterIn;
+import subscription.converter.CmConverterOut;
 import subscription.data.FilterType;
-import subscription.data.aam.AamPredicate;
-import subscription.data.aam.ExtendedConversation;
 import subscription.data.filters.AamEventInFilter;
-import subscription.data.subscribe.SubscriptionData;
 import subscription.impl.SubscriptionFilterManagerImpl;
 import subscription.impl.SubscriptionServerAamImpl;
+import subscription.impl.SubscriptionServerCmImpl;
+import subscription.test.QueueTestSender;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by eladw on 1/6/2016.
  */
 //@RunWith(PowerMockRunner.class)
-public class AamServerSubscriptionTest {
+public class CmServerSubscriptionTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(AamServerSubscriptionTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(CmServerSubscriptionTest.class);
 
     private WsRequestMsg subscribeReq;
 
@@ -51,15 +48,17 @@ public class AamServerSubscriptionTest {
     @Before
     public void setupMock() {
 
-        subscribeReq = new WsRequestMsg("123", new SubscribeExConversationsBuilder()
-                        .withBrandId("brand1")
-                        .withConvState(EnumSet.of(ConversationState.OPEN))
-                        .build());
+        SubscribeConversations subsConv = new SubscribeConversations();
+
+        //subsConv.brandId = "brand1";
+        subscribeReq = new WsRequestMsg("123", new SubscribeConversations());
+                       // .withBrandId("brand1")
+                      //  .withConvState(EnumSet.of(ConversationState.OPEN))
+                      //  .build());
         wsResponseMsg =  new WsResponseMsg(
                 "11",
                 Response.Status.OK,
-                new SubscribeExConversations.Response("11"));
-
+                new SubscribeConversations.Response("11"));
 
 
 //        subscribeReq = Mockito.mock(RequestMsg.class);
@@ -72,12 +71,12 @@ public class AamServerSubscriptionTest {
     }
 
     @Test
-    public void aamSubsUnsubBaseTest(){
+    public void cmSubsUnsubBaseTest(){
         QueueTestSender<String> sender = new QueueTestSender<>();
-        SubscriptionServerAamImpl aamServerSubscriber = new SubscriptionServerAamImpl(
+        SubscriptionServerCmImpl aamServerSubscriber = new SubscriptionServerCmImpl(
                 new SubscriptionFilterManagerImpl(),
-                new AamConverterIn(),
-                new AamConverterOut(),
+                new CmConverterIn(),
+                new CmConverterOut(),
                 sender);
         List<SubscriptionFilter> filters = new ArrayList<>();
         filters.add(new AamEventInFilter());
@@ -94,7 +93,7 @@ public class AamServerSubscriptionTest {
         }
         long aftre = System.currentTimeMillis();
         logger.info("Execution: {} msec", aftre - before);
-        int size = aamServerSubscriber.getAamSubscriptionActions().getAccountSubscriptions("brand1").size();
+        int size = aamServerSubscriber.getCmSubscriptionActions().getAccountSubscriptions("brand1").size();
         Assert.assertEquals("Some subscribers were not subscribed ", 1, size);
 
 
@@ -117,12 +116,12 @@ public class AamServerSubscriptionTest {
 
         //unsubscribe
         List<String> userSubscriptions = aamServerSubscriber.
-                getAamSubscriptionActions().getUserSubscriptions("brand1", "user1");
+                getCmSubscriptionActions().getUserSubscriptions("brand1", "user1");
         String subsId = userSubscriptions.get(0);
         subscribeReq = new WsRequestMsg("123", new UnsubscribeExConversations(subsId));
 
         aamServerSubscriber.onUnSubscribe(subscribeReq, "brand1", "user1", null);
-        size = aamServerSubscriber.getAamSubscriptionActions().getAccountSubscriptions("brand1").size();
+        size = aamServerSubscriber.getCmSubscriptionActions().getAccountSubscriptions("brand1").size();
         Assert.assertEquals("Some unsubscribers were not unsubscribed ", 0, size);
 
 
