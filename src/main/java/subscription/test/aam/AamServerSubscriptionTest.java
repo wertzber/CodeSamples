@@ -3,7 +3,11 @@ package subscription.test.aam;
 import com.liveperson.api.ams.aam.SubscribeExConversations;
 import com.liveperson.api.ams.aam.SubscribeExConversationsBuilder;
 import com.liveperson.api.ams.aam.UnsubscribeExConversations;
+import com.liveperson.api.ams.aam.types.ExtendedConversationDetails;
+import com.liveperson.api.ams.aam.types.ExtendedConversationDetailsBuilder;
+import com.liveperson.api.ams.cm.types.ConversationDetailsBuilder;
 import com.liveperson.api.ams.cm.types.ConversationState;
+import com.liveperson.api.ams.cm.types.ParticipantRole;
 import com.liveperson.api.ams.types.TTR;
 import com.liveperson.api.websocket.WsRequestMsg;
 import com.liveperson.api.websocket.WsResponseMsg;
@@ -14,18 +18,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import subscription.api.SubscriptionResultModifier;
 import subscription.converter.AamConverterIn;
 import subscription.converter.AamConverterOut;
 import subscription.data.aam.ExtendedConversation;
 import subscription.data.subscribe.SubscriptionData;
 import subscription.impl.SubscriptionServerAamImpl;
+import subscription.modifier.AamModifierNoteOut;
 import subscription.test.QueueTestSender;
+import subscription.utils.SubscriptionConsts;
 
 import javax.ws.rs.core.Response;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Predicate;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.*;
 
 /**
  * Created by eladw on 1/6/2016.
@@ -38,6 +44,7 @@ public class AamServerSubscriptionTest {
     private WsRequestMsg subscribeReq;
     WsResponseMsg wsResponseMsg;
 
+    //in predicate
     Predicate<Conversation> nonNullPredicate = Objects::nonNull;
 
     Predicate<Conversation> testConversationState = (Conversation conv)-> {
@@ -46,6 +53,26 @@ public class AamServerSubscriptionTest {
     Predicate<Conversation> testConversationBrand = (Conversation conv)-> {
         return conv.brandId!=null;
     };
+
+    Map<String,Object> params = new HashMap<>();
+
+
+
+    //modifer
+    Predicate<String> predicate = (role) ->{
+        return role.equals("CONSUMER");
+    };
+
+    BiFunction<ExtendedConversationDetails, String, ExtendedConversationDetails> action = (ExtendedConversationDetails exConv, String value) ->{
+        ExtendedConversationDetails exConUpdate = null;
+        if(exConv instanceof ExtendedConversationDetails){
+            exConUpdate = new ExtendedConversationDetailsBuilder()
+                    .withConversationDetails(new ConversationDetailsBuilder().copy(exConv.conversationDetails).withNote("empty").build())
+                    .build();
+        }
+        return exConUpdate;
+    };
+
 
     @Before
     public void setupMock() {
@@ -58,7 +85,7 @@ public class AamServerSubscriptionTest {
                 "11",
                 Response.Status.OK,
                 new SubscribeExConversations.Response("11"));
-
+        params.put(SubscriptionConsts.ROLE, ParticipantRole.CONSUMER.toString());
 
 
 //        subscribeReq = Mockito.mock(RequestMsg.class);
@@ -76,8 +103,13 @@ public class AamServerSubscriptionTest {
         Predicate filtersIn = nonNullPredicate.and(testConversationState)
                 .and(testConversationBrand);
 
+        List<SubscriptionResultModifier> modifiers = new ArrayList<>();
+
+        modifiers.add(new AamModifierNoteOut(predicate, null, action));
+
         SubscriptionServerAamImpl aamServerSubscriber = new SubscriptionServerAamImpl(
                 filtersIn,
+                modifiers,
                 new AamConverterIn(),
                 new AamConverterOut(),
                 sender);
@@ -104,9 +136,9 @@ public class AamServerSubscriptionTest {
                 .withState(ConversationState.OPEN)
                 .withTtr(new TTR())
                 .build();
-        aamServerSubscriber.onEvent(conversation, "brand1", null, null);
-        aamServerSubscriber.onEvent(conversation, "brand1", null, null);
-        aamServerSubscriber.onEvent(conversation, "brand1", null, null);
+        aamServerSubscriber.onEvent(conversation, "brand1", null, params);
+        aamServerSubscriber.onEvent(conversation, "brand1", null, params);
+        aamServerSubscriber.onEvent(conversation, "brand1", null, params);
 
         try {
             Thread.sleep(6000);

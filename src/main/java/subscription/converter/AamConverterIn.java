@@ -13,6 +13,8 @@ public class AamConverterIn implements SubscriptionConverter<Conversation, Exten
 
     private static final Logger logger = LoggerFactory.getLogger(AamConverterIn.class);
 
+    public AamConverterIn() {
+    }
 
     @Override
     public ExtendedConversation convert(Conversation inputEvent) {
@@ -44,9 +46,4 @@ public class AamConverterIn implements SubscriptionConverter<Conversation, Exten
         }
     }
 
-    @Override
-    //No use to the subs id
-    public ExtendedConversation convert(String subscribeId, Conversation input) {
-        return convert(input);
-    }
 }

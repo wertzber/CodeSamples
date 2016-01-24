@@ -53,7 +53,7 @@ public class SubscriptionServerCmImpl implements SubscriptionServer<WsRequestMsg
 
     @Override
     public void onSubscribe(WsRequestMsg inSubscribeRequest,String accountId, String userId,
-                            Map<String, String> params) {
+                            Map<String, Object> params) {
         SubscribeConversations inSubscribeBody = (SubscribeConversations) inSubscribeRequest.body;
         String subsId = cmSubscriptionActions.addSubscriber(
                 accountId, userId, new ConversationPredicate(inSubscribeBody), inSubscribeBody);
@@ -65,7 +65,7 @@ public class SubscriptionServerCmImpl implements SubscriptionServer<WsRequestMsg
     }
 
     @Override
-    public void onUnSubscribe(WsRequestMsg inUnSubscribeRequest, final String account, String userId, Map<String, String> params) {
+    public void onUnSubscribe(WsRequestMsg inUnSubscribeRequest, final String account, String userId, Map<String, Object> params) {
         if(userId!=null || account==null){
             cmSubscriptionActions.removeSubscriberUser(account, userId);
         } else {
@@ -75,12 +75,12 @@ public class SubscriptionServerCmImpl implements SubscriptionServer<WsRequestMsg
 
     @Override
     public void onUpdateSubscribe(WsRequestMsg updateSubscribeRequest, final String account, String userId,
-                                  Map<String, String> params) {
+                                  Map<String, Object> params) {
 
     }
 
     @Override
-    public void onEvent(Object event, String account, String userId, Map<String, String> params ) {
+    public void onEvent(Object event, String account, String userId, Map<String, Object> params ) {
         ConversationDetails convDetails = null;
         //convertFormat
         if(event instanceof Conversation && cmInFilter.test(event)){

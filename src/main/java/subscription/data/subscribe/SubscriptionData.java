@@ -5,7 +5,7 @@ import subscription.data.aam.ExtendedConversation;
 import java.util.function.Predicate;
 
 /**
- * P - predicate object to use, for example: in aam use ExtendConv
+ * P
  * O - orig subscribe
  *
  * predicate - actual predicate to use
@@ -44,4 +44,6 @@ public class SubscriptionData<P,O> {
                 ", origSubscribe=" + origSubscribe +
                 '}';
     }
+
+
 }
