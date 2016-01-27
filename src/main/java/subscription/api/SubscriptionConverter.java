@@ -11,14 +11,8 @@ import java.util.function.Predicate;
  */
 public interface SubscriptionConverter<IN,OUT> {
 
-    default OUT convert(IN input) {
-        System.err.print("SubscriptionConverter: convert not implemented");
-        return null;
-    }
+    OUT convert(IN input);
 
-    default OUT convert(String subscribeId, IN input) {
-        System.err.print("SubscriptionConverter: convert(subscribeId,Input) not implemented ");
-        return null;
-    }
+    OUT convert(String subscribeId, IN input);
 
 }

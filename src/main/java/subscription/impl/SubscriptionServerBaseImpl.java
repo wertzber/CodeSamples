@@ -89,7 +89,6 @@ public class SubscriptionServerBaseImpl<O,T,P> implements SubscriptionServer<O,T
         subsIds.stream().forEach(subsId -> onUnSubscribe(inUnSubscribeRequest, subsId));
         accountSubscriptionSet.remove(account);
         logger.debug("Remove subscription Id {} account {}", account);
-
     }
 
     @Override

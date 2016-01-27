@@ -9,10 +9,5 @@ import java.util.function.Predicate;
  * convert data type. could be used: in flow / out flow
  */
 public interface SubscriptionResultModifier<IN, OUT> {
-
-
-    default OUT modify(IN inputEvent, Map<String,Object> params) {
-        System.err.print("SubscriptionConverter: convert(in,predicate,action) not implemented ");
-        return null;
-    }
+    OUT modify(IN inputEvent, Map<String,Object> params);
 }
