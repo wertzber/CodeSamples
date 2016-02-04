@@ -10,23 +10,23 @@ import java.util.function.Function;
  * Date: 1/26/2016
  * Time: 2:53 PM
  */
-public class SubscriptionServerUtils {
+public class SubscriptionServerUtils<P> {
 
-    public static SubscriptionConverter getDefaultSubscriptionConverter() {
-        return new SubscriptionConverter() {
+    public SubscriptionConverter getDefaultSubscriptionConverter() {
+        return new SubscriptionConverter<P,P>() {
             @Override
-            public Object convert(Object input) {
-                return input;
+            public P convert(P object) {
+                return object;
             }
 
             @Override
-            public Object convert(String subscribeId, Object input) {
-                return input;
+            public P convert(String subscribeId, P object) {
+                return object;
             }
         };
     }
 
-    public static Function getDefaultEventFilter() {
+    public Function<P,P> getDefaultFilter() {
         return o -> o;
     }
 }

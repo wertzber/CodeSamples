@@ -9,5 +9,5 @@ import java.util.function.Predicate;
  * convert data type. could be used: in flow / out flow
  */
 public interface SubscriptionResultModifier<IN, OUT> {
-    OUT modify(IN inputEvent, Map<String,Object> params);
+    OUT modify(IN inputEvent);
 }

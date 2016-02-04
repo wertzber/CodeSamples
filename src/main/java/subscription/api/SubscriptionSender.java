@@ -6,9 +6,12 @@ import java.util.List;
  * Created by eladw on 1/6/2016.
  * Base interface for the sender of the subscription util
  */
-public interface SubscriptionSender<T> {
+public interface SubscriptionSender {
 
-    void send(T dataToSend) throws InterruptedException;
-    void send(List<T> dataToSend) throws InterruptedException;
+    void send(String clientId, Object dataToSend);
+
+    default void send(String clientId, List<Object> dataToSend) {
+        dataToSend.forEach(data -> this.send(clientId, data));
+    }
 
 }

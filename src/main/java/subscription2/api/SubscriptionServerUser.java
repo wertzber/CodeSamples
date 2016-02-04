@@ -1,5 +1,6 @@
 package subscription2.api;
 
+import subscription2.events.EventInfo;
 import subscription2.exceptions.SubscriptionAlreadyExistsException;
 
 import java.util.Map;
@@ -10,13 +11,13 @@ import java.util.Map;
  * Date: 1/24/2016
  * Time: 2:57 PM
  */
-public interface SubscriptionServerUser<O> {
+public interface SubscriptionServerUser<O,P> {
 
-    String onSubscribe(O inSubscribeRequest, String userId, Map<String, Object> params) throws SubscriptionAlreadyExistsException;
+    String onSubscribe(String clientId, O inSubscribeRequest, String userId, Map<String, Object> params) throws SubscriptionAlreadyExistsException;
 
-    void onUnSubscribe(O inUnSubscribeRequest, String userId);
+    void onUnSubscribe(String clientId, O inUnSubscribeRequest, String userId);
 
-    void onUpdateSubscribe(O updateSubscribeRequest, String userId, Map<String, Object> params);
+    void onUpdateSubscribe(String clientId, O updateSubscribeRequest, String userId, Map<String, Object> params);
 
-    void onEvent(Object event, String userId, Map<String, Object> params);
+    void onEvent(EventInfo eventInfo);
 }

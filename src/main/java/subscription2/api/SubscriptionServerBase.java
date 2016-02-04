@@ -2,6 +2,7 @@ package subscription2.api;
 
 import subscription.api.SubscriptionConverter;
 import subscription.api.SubscriptionResultModifier;
+import subscription2.events.EventInfo;
 import subscription2.exceptions.SubscriptionAlreadyExistsException;
 
 import java.util.Map;
@@ -21,11 +22,11 @@ public interface SubscriptionServerBase<O,P> {
      * @return the subscription id
      * @throws SubscriptionAlreadyExistsException in case subscription already exists
      */
-    String onSubscribe(O inSubscribeRequest, Map<String, Object> params) throws SubscriptionAlreadyExistsException;
+    String onSubscribe(String clientId, O inSubscribeRequest, Map<String, Object> params) throws SubscriptionAlreadyExistsException;
 
-    void onUnSubscribe(O inUnSubscribeRequest, String subscribeId);
+    void onUnSubscribe(String clientId, O inUnSubscribeRequest, String subscribeId);
 
-    void onUpdateSubscribe(O updateSubscribeRequest, String subscribeId, Map<String, Object> params);
+    void onUpdateSubscribe(String clientId, O updateSubscribeRequest, String subscribeId, Map<String, Object> params);
 
     <F> void registerIncomingEventFilter(Class<F> filteredClass, Function<F, F> incomingEventFilter);
 
@@ -33,7 +34,7 @@ public interface SubscriptionServerBase<O,P> {
 
     void registerResultModifier(SubscriptionResultModifier<P,P> resultModifier);
 
-    <C> void registerOutgoingEventConverter(SubscriptionConverter<P,C> outgoingEventConverter);
+    <C> void registerOutgoingResultConverter(SubscriptionConverter<P, C> outgoingResultConverter);
 
-    void onEvent(Object event, Map<String, Object> params);
+    void onEvent(EventInfo eventInfo);
 }
