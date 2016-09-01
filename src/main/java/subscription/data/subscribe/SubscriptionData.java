@@ -1,11 +1,9 @@
 package subscription.data.subscribe;
 
-import subscription.data.aam.ExtendedConversation;
-
 import java.util.function.Predicate;
 
 /**
- * P - predicate object to use, for example: in aam use ExtendConv
+ * P
  * O - orig subscribe
  *
  * predicate - actual predicate to use
@@ -15,18 +13,20 @@ import java.util.function.Predicate;
  * Time: 2:30 PM
  */
 
-public class SubscriptionData<P,O> {
+public class SubscriptionData<O,P> {
 
     private Predicate<P> subscribePredicate;
     private O origSubscribe;
     //subscriptionId of this query
     private String subscriptionId;
+    private String clientId;
 
     public SubscriptionData(Predicate<P> subscribePredicate, O origSubscribe,
-                            String subscriptionId) {
+                            String subscriptionId, String clientId) {
         this.subscribePredicate = subscribePredicate;
         this.origSubscribe = origSubscribe;
         this.subscriptionId = subscriptionId;
+        this.clientId = clientId;
     }
 
     public Predicate<P> getSubscribePredicate() {
@@ -36,12 +36,17 @@ public class SubscriptionData<P,O> {
         return origSubscribe;
     }
     public String getSubscriptionId() {return subscriptionId;};
+    public String getClientId() {
+        return clientId;
+    }
 
     @Override
     public String toString() {
         return "SubscriptionData{" +
-                "subscriptionId='" + subscriptionId + '\'' +
+                "subscribePredicate=" + subscribePredicate +
                 ", origSubscribe=" + origSubscribe +
+                ", subscriptionId='" + subscriptionId + '\'' +
+                ", clientId='" + clientId + '\'' +
                 '}';
     }
 }

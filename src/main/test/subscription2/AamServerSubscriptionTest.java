@@ -1,4 +1,4 @@
-//package subscription.test.aam;
+//package subscription2;
 //
 //import com.liveperson.api.ams.aam.SubscribeExConversations;
 //import com.liveperson.api.ams.aam.SubscribeExConversationsBuilder;
@@ -30,13 +30,12 @@
 //
 //import javax.ws.rs.core.Response;
 //import java.util.*;
-//import java.util.concurrent.ConcurrentHashMap;
-//import java.util.function.*;
+//import java.util.function.BiFunction;
+//import java.util.function.Predicate;
 //
 ///**
 // * Created by eladw on 1/6/2016.
 // */
-////@RunWith(PowerMockRunner.class)
 //public class AamServerSubscriptionTest {
 //
 //    private static final Logger logger = LoggerFactory.getLogger(AamServerSubscriptionTest.class);
@@ -65,9 +64,9 @@
 //
 //    BiFunction<ExtendedConversationDetails, String, ExtendedConversationDetails> action = (ExtendedConversationDetails exConv, String value) ->{
 //        ExtendedConversationDetails exConUpdate = null;
-//        if(exConv instanceof ExtendedConversationDetails){
+//        if(exConv != null){
 //            exConUpdate = new ExtendedConversationDetailsBuilder()
-//                    .withConversationDetails(new ConversationDetailsBuilder().copy(exConv.conversationDetails).withNote("empty").build())
+//                    .withConversationDetails(new ConversationDetailsBuilder().copy(exConv.conversationDetails).withNote(value).build())
 //                    .build();
 //        }
 //        return exConUpdate;
@@ -87,14 +86,6 @@
 //                new SubscribeExConversations.Response("11"));
 //        params.put(SubscriptionConsts.ROLE, ParticipantRole.CONSUMER.toString());
 //
-//
-////        subscribeReq = Mockito.mock(RequestMsg.class);
-////        Mockito.when(subscribeReq.getBody())
-////                .thenReturn(new SubscribeExConversationsBuilder()
-////                        .withBrandId(counter.toString()).build());
-//
-////        Mockito.when(subscribeReq.response(any(), any()))
-////               .thenReturn(resp);
 //    }
 //
 //    @Test

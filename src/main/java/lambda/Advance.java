@@ -24,7 +24,18 @@ public class Advance {
 
     public static void main(String args[]){
         Advance advance = new Advance();
-        advance.join();
+        advance.test1();
+    }
+
+    public void test1(){
+        System.out.print(persons.stream().count() + "\n");
+        //List r = persons.stream().map(p->p.age=100).collect(Collectors.toList());
+        persons.stream().map(p -> p.age = 100);
+
+        System.out.print("person" + persons + "\n");
+        //System.out.print("list" + r);
+
+
     }
 
     /**
