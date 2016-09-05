@@ -1,8 +1,10 @@
-package guice.service;
+package guice.example1.service;
 
 import com.google.inject.AbstractModule;
-import guice.pojo.BillingService;
-import guice.pojo.RealBillingService;
+import guice.example1.pojo.BillingService;
+import guice.example1.pojo.RealBillingService;
+
+import javax.inject.Scope;
 
 /**
  * Created by eladw on 8/31/2016.

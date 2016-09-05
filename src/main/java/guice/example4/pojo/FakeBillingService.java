@@ -1,4 +1,4 @@
-package guice.pojo;
+package guice.example4.pojo;
 
 /**
  * Created by eladw on 8/31/2016.

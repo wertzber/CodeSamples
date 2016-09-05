@@ -1,7 +1,5 @@
 package h2;
 
-import guice.Main;
-import guice.pojo.BillingService;
 import org.h2.tools.DeleteDbFiles;
 
 import java.sql.*;
@@ -22,7 +20,7 @@ public class H2Example {
             // delete the H2 database named 'test' in the user home directory
             DeleteDbFiles.execute("~", "test", true);
             insertWithPreparedStatement();
-            //test DI - BillingService billingService = Main.injector.getInstance(BillingService.class);
+            //test DI - BillingService billingService = Main2.injector.getInstance(BillingService.class);
             // billingService.chargeOrder(100);
 
         } catch (SQLException e) {

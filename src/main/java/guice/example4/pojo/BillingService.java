@@ -1,6 +1,4 @@
-package guice.pojo;
-
-import com.google.inject.Inject;
+package guice.example4.pojo;
 
 /**
  * Created by eladw on 8/31/2016.

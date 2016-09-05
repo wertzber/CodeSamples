@@ -1,11 +1,11 @@
-package guice;
+package guice.example1;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import guice.pojo.BillingService;
-import guice.pojo.FakeBillingService;
-import guice.service.BillingModule;
+import com.google.inject.Scopes;
+import guice.example1.pojo.BillingService;
+import guice.example1.pojo.FakeBillingService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +23,7 @@ public class SampleTest {
 
             @Override
             protected void configure() {
-                bind(BillingService.class).to(FakeBillingService.class);
+                bind(BillingService.class).to(FakeBillingService.class).in(Scopes.SINGLETON);
             }
         });
     }

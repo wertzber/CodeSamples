@@ -1,0 +1,1 @@
+singletone on module bind
