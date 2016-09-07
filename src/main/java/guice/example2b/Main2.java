@@ -1,10 +1,12 @@
-package guice.example2;
+package guice.example2b;
 
 import com.google.inject.CreationException;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.name.Named;
+import guice.example2.BillingModule;
+import guice.example2.NetworkDemo;
 
 
 /**
@@ -14,13 +16,14 @@ public class Main2 {
 
     public static Injector injector;
 
+
+
+
     public static void main(String[] args) {
 
         try {
               injector  = Guice.createInjector(new BillingModule());
               injector.getInstance(NetworkDemo.class).print();
-              //injector.getInstance(NetworkDemo2.class).print();
-
         } catch (CreationException createE) {
             System.out.println("Create exception " + createE);
             createE.printStackTrace();

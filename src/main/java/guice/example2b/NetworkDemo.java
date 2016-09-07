@@ -1,10 +1,8 @@
-package guice.example2;
+package guice.example2b;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-
-//import javax.inject.Inject;
-//import javax.inject.Named;
+import guice.example2b.annotations.Port;
 
 /**
  * Created by eladw on 9/5/2016.
@@ -15,7 +13,7 @@ public class NetworkDemo {
     public String address;
 
     @Inject
-    public NetworkDemo(@Named("port") int port,@Named("address") String address) {
+    public NetworkDemo(@Port int port,@Named("address") String address) {
         this.port = port;
         this.address = address;
     }

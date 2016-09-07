@@ -3,19 +3,16 @@ package guice.example2;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
-//import javax.inject.Inject;
-//import javax.inject.Named;
-
 /**
  * Created by eladw on 9/5/2016.
  */
-public class NetworkDemo {
+public class NetworkDemo2 {
 
-    public int port;
+    public String port;
     public String address;
 
     @Inject
-    public NetworkDemo(@Named("port") int port,@Named("address") String address) {
+    public NetworkDemo2(@Named("port") String port, @Named("address") String address) {
         this.port = port;
         this.address = address;
     }

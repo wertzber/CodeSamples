@@ -1,0 +1,1 @@
+Constant binding + constructor injection
